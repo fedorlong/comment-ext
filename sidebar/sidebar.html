@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="sidebar.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Blog Comment Assistant</h2>
+    <div class="product-manager">
+      <div class="product-selector">
+        <label class="product-label">Select Product:</label>
+        <div class="product-select-wrapper">
+          <select id="productSelect" class="product-select"></select>
+        </div>
+        <button id="addProductBtn" class="icon-btn" title="Add Product">+</button>
+        <button id="editProductBtn" class="icon-btn edit" title="Edit Product">✎</button>
+        <button id="deleteProductBtn" class="icon-btn warning" title="Delete Product">×</button>
+      </div>
+      
+      <div id="productForm" class="product-form hidden">
+        <div class="form-group">
+          <label>Domain:</label>
+          <input type="url" id="domainInput" placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label>Keyword:</label>
+          <input type="text" id="keywordInput" placeholder="Product name">
+        </div>
+        <div class="form-group">
+          <label>Description:</label>
+          <textarea id="descInput" rows="5" placeholder="Brief description of your product"></textarea>
+        </div>
+        <div class="form-buttons">
+          <button id="saveProductBtn">Save</button>
+          <button id="cancelProductBtn">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="rel-options">
+      <label class="rel-label">Link Attributes:</label>
+      <div class="checkbox-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="rel" value="nofollow" checked>
+          nofollow
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="rel" value="ugc" checked>
+          ugc
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="rel" value="noopener">
+          noopener
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="rel" value="noreferrer">
+          noreferrer
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="rel" value="sponsored">
+          sponsored
+        </label>
+      </div>
+    </div>
+    <button id="generateBtn">Generate Comment</button>
+    <div id="result" class="result hidden">
+      <textarea id="commentText" readonly></textarea>
+      <button id="copyBtn">Copy Comment</button>
+    </div>
+    <div id="error" class="error hidden"></div>
+    <div id="loading" class="loading hidden">Generating...</div>
+  </div>
+  <script src="../lib/readability.js"></script>
+  <script src="../lib/extractor.js"></script>
+  <script src="sidebar.js"></script>
+</body>
+</html> 
