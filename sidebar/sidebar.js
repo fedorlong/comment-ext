@@ -4,10 +4,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultDiv = document.getElementById('result');
   const commentText = document.getElementById('commentText');
   const errorDiv = document.getElementById('error');
+  const settingsErrorDiv = document.getElementById('settingsError');
   const loadingDiv = document.getElementById('loading');
 
-  // 硬编码 API key
-  const API_KEY = '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';  // 替换为你的 API key
+  // 标签页元素
+  const mainTab = document.getElementById('mainTab');
+  const settingsTab = document.getElementById('settingsTab');
+  const mainContent = document.getElementById('mainContent');
+  const settingsContent = document.getElementById('settingsContent');
+  
+  // 设置页元素
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const toggleApiVisibility = document.getElementById('toggleApiVisibility');
+  const copyApiKey = document.getElementById('copyApiKey');
+  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+  const settingsSaved = document.getElementById('settingsSaved');
+  
+  // API Key 变量
+  let API_KEY = '';
 
   // 产品管理相关元素
   const productSelect = document.getElementById('productSelect');
@@ -144,6 +158,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   generateBtn.addEventListener('click', async () => {
     try {
+      if (!API_KEY) {
+        showError('Please set your API Key in the Settings tab');
+        settingsTab.click(); // 自动切换到设置标签页
+        return;
+      }
+      
       showLoading(true);
       // 获取当前标签页
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -247,6 +267,90 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     generateBtn.disabled = show;
   }
 
+  // 标签页切换
+  mainTab.addEventListener('click', () => {
+    mainTab.classList.add('active');
+    settingsTab.classList.remove('active');
+    mainContent.classList.add('active');
+    settingsContent.classList.remove('active');
+    settingsErrorDiv.classList.add('hidden');
+  });
+  
+  settingsTab.addEventListener('click', () => {
+    settingsTab.classList.add('active');
+    mainTab.classList.remove('active');
+    settingsContent.classList.add('active');
+    mainContent.classList.remove('active');
+    errorDiv.classList.add('hidden');
+  });
+  
+  // API Key 可见性切换
+  toggleApiVisibility.addEventListener('click', () => {
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+    
+    if (apiKeyInput.type === 'password') {
+      apiKeyInput.type = 'text';
+      eyeIcon.classList.add('hidden');
+      eyeSlashIcon.classList.remove('hidden');
+    } else {
+      apiKeyInput.type = 'password';
+      eyeSlashIcon.classList.add('hidden');
+      eyeIcon.classList.remove('hidden');
+    }
+  });
+  
+  // 保存设置
+  saveSettingsBtn.addEventListener('click', () => {
+    // 清理 API Key (移除所有空格和不可见字符)
+    let newApiKey = apiKeyInput.value.trim().replace(/\s+/g, '');
+    
+    if (!newApiKey) {
+      showSettingsError('Please enter a valid API Key');
+      return;
+    }
+    
+    API_KEY = newApiKey;
+    chrome.storage.sync.set({ apiKey: API_KEY });
+    
+    // 显示成功消息
+    settingsSaved.classList.remove('hidden');
+    settingsErrorDiv.classList.add('hidden');
+    setTimeout(() => {
+      settingsSaved.classList.add('hidden');
+    }, 3000);
+  });
+  
+  // 加载 API Key
+  async function loadApiKey() {
+    const result = await chrome.storage.sync.get('apiKey');
+    if (result.apiKey) {
+      API_KEY = result.apiKey;
+      apiKeyInput.value = result.apiKey;
+    }
+  }
+  
+  // 复制 API Key
+  copyApiKey.addEventListener('click', () => {
+    if (API_KEY) {
+      navigator.clipboard.writeText(API_KEY).then(() => {
+        // 临时改变按钮文本表示成功
+        const originalText = copyApiKey.textContent;
+        copyApiKey.textContent = '✓';
+        setTimeout(() => {
+          copyApiKey.textContent = originalText;
+        }, 1500);
+      });
+    }
+  });
+
+  function showSettingsError(message) {
+    settingsErrorDiv.textContent = message;
+    settingsErrorDiv.classList.remove('hidden');
+    settingsSaved.classList.add('hidden');
+  }
+
   // 初始化
+  loadApiKey();
   loadProducts();
 }); 
