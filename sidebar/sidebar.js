@@ -8,9 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 硬编码 API key
   const API_KEY = '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';  // 替换为你的 API key
-  const myDomain = 'https://sprunkiplayground.com/'
-  const myKeyword = 'sprunki'
-  const desc = 'Sprunki Game is a fan-made expansion of the popular Incredibox music-mixing game'
 
   // 产品管理相关元素
   const productSelect = document.getElementById('productSelect');
