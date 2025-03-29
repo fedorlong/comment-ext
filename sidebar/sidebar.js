@@ -38,14 +38,16 @@ document.addEventListener('DOMContentLoaded', () => {
   let products = [];
   let selectedProductIndex = 0;
 
+  const mock = [{
+    domain: 'https://sprunkiplayground.com/',
+    keyword: 'sprunki',
+    description: 'Sprunki Game is a fan-made expansion of the popular Incredibox music-mixing game'
+  }];
+
   // 从存储加载产品配置
   async function loadProducts() {
     const result = await chrome.storage.sync.get('products');
-    products = result.products || [{
-      domain: 'https://sprunkiplayground.com/',
-      keyword: 'sprunki',
-      description: 'Sprunki Game is a fan-made expansion of the popular Incredibox music-mixing game'
-    }];
+    products = result?.products || [];
     updateProductSelect();
   }
 
@@ -85,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   addProductBtn.addEventListener('click', () => {
-    showProductForm({}, false);
+    showProductForm({ domain: '', keyword: '', description: '' }, false);
   });
 
   editProductBtn.addEventListener('click', () => {
@@ -164,28 +166,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
+      // 提前检查产品配置
+      if (products.length === 0) {
+        showError('Please add at least one product configuration');
+        return;
+      }
+      
+      const currentProduct = products[selectedProductIndex];
+      if (!currentProduct) {
+        showError('Invalid product selection');
+        return;
+      }
+      
       showLoading(true);
+      
       // 获取当前标签页
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) throw new Error('无法获取当前页面');
-
-      // 在页面中提取内容
-      const [{result}] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['lib/readability.js', 'lib/extractor.js']
-      });
-
+      
       // 提取文章内容
-      const content = await chrome.scripting.executeScript({
+      const article = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: () => window.extractArticleContent()
+        function: extractArticleContent
       });
-
-      const article = content[0].result;
-      if (!article) throw new Error('无法提取文章内容');
-
-      const currentProduct = products[selectedProductIndex];
+      
+      // 获取提取的内容
+      const { title, excerpt } = article[0].result;
+      
+      if (!title || !excerpt) {
+        throw new Error('Could not extract content from the page');
+      }
+      
       const selectedRels = getSelectedRels();
+      
       // 调用 OpenRouter API 使用 DeepSeek 模型
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -203,8 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }, {
             role: "user",
             content: `Write a short, natural comment (30-50 words):
-Title: ${article.title}
-Content: ${article.excerpt}
+Title: ${title}
+Content: ${excerpt}
 Keyword: ${currentProduct.keyword}
 Keyword Description: ${currentProduct.description}
 
