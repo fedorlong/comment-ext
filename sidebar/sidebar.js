@@ -96,6 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // 事件监听器
   productSelect.addEventListener('change', (e) => {
     selectedProductIndex = parseInt(e.target.value);
+    
+    // 如果产品表单正在显示，则隐藏它
+    if (!productForm.classList.contains('hidden')) {
+      hideProductForm();
+    }
   });
 
   addProductBtn.addEventListener('click', () => {
@@ -282,18 +287,17 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     
     // 保存原始按钮内容
     const originalHTML = copyBtn.innerHTML;
-    const originalBgColor = copyBtn.style.backgroundColor;
-    const originalColor = copyBtn.style.color;
     
     // 更改按钮样式和内容以显示成功状态
     copyBtn.innerHTML = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
         <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
       </svg>
-      Copied!
+      Copied
     `;
-    copyBtn.style.backgroundColor = '#10b981';
-    copyBtn.style.color = 'white';
+    copyBtn.style.backgroundColor = '#f0fdf4';
+    copyBtn.style.color = '#16a34a';
+    copyBtn.style.borderColor = '#bbf7d0';
     
     // 清除之前的定时器
     if (copyCommentTimerId) {
@@ -303,13 +307,11 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     // 设置新的定时器，恢复按钮原始状态
     copyCommentTimerId = setTimeout(() => {
       copyBtn.innerHTML = originalHTML;
-      copyBtn.style.backgroundColor = originalBgColor;
-      copyBtn.style.color = originalColor;
+      copyBtn.style.backgroundColor = '';
+      copyBtn.style.color = '';
+      copyBtn.style.borderColor = '';
       copyCommentTimerId = null;
     }, 1500);
-    
-    // 显示成功提示
-    showToast('Comment copied to clipboard!', 'success');
   });
 
   function showResult(comment) {
