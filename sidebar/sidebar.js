@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsErrorDiv = document.getElementById('settingsError');
   const loadingDiv = document.getElementById('loading');
 
+  // 定时器引用
+  let toastTimerId = null;
+  let settingsSavedTimerId = null;
+  let copyApiKeyTimerId = null;
+  let copyCommentTimerId = null;
+
   // Toast 元素
   const toast = document.getElementById('toast');
   const toastContent = document.getElementById('toastContent');
@@ -187,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       
+      // 清除之前的错误信息
+      errorDiv.classList.add('hidden');
       showLoading(true);
       
       // 获取当前标签页
@@ -202,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { title, excerpt } = article[0].result;
       
       if (!title || !excerpt) {
-        throw new Error('Could not extract content from the page');
+        throw new Error('Could not extract content from the page. Please make sure you are on a page with readable content.');
       }
       
       const selectedRels = getSelectedRels();
@@ -261,6 +269,8 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
       showResult(comment);
     } catch (error) {
       showToast(error.message);
+      // 同时显示持久的错误信息
+      showPersistentError(error.message);
     } finally {
       showLoading(false);
     }
@@ -269,6 +279,37 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
   copyBtn.addEventListener('click', () => {
     commentText.select();
     document.execCommand('copy');
+    
+    // 保存原始按钮内容
+    const originalHTML = copyBtn.innerHTML;
+    const originalBgColor = copyBtn.style.backgroundColor;
+    const originalColor = copyBtn.style.color;
+    
+    // 更改按钮样式和内容以显示成功状态
+    copyBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 6px;">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+      </svg>
+      Copied!
+    `;
+    copyBtn.style.backgroundColor = '#10b981';
+    copyBtn.style.color = 'white';
+    
+    // 清除之前的定时器
+    if (copyCommentTimerId) {
+      clearTimeout(copyCommentTimerId);
+    }
+    
+    // 设置新的定时器，恢复按钮原始状态
+    copyCommentTimerId = setTimeout(() => {
+      copyBtn.innerHTML = originalHTML;
+      copyBtn.style.backgroundColor = originalBgColor;
+      copyBtn.style.color = originalColor;
+      copyCommentTimerId = null;
+    }, 1500);
+    
+    // 显示成功提示
+    showToast('Comment copied to clipboard!', 'success');
   });
 
   function showResult(comment) {
@@ -331,8 +372,16 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     // 显示成功消息
     settingsSaved.classList.remove('hidden');
     settingsErrorDiv.classList.add('hidden');
-    setTimeout(() => {
+    
+    // 清除之前的定时器
+    if (settingsSavedTimerId) {
+      clearTimeout(settingsSavedTimerId);
+    }
+    
+    // 设置新的定时器
+    settingsSavedTimerId = setTimeout(() => {
       settingsSaved.classList.add('hidden');
+      settingsSavedTimerId = null;
     }, 3000);
   });
   
@@ -360,11 +409,19 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
         copyApiKey.style.backgroundColor = '#dcfce7';
         copyApiKey.style.color = '#16a34a';
         copyApiKey.style.borderColor = '#bbf7d0';
-        setTimeout(() => {
+        
+        // 清除之前的定时器
+        if (copyApiKeyTimerId) {
+          clearTimeout(copyApiKeyTimerId);
+        }
+        
+        // 设置新的定时器
+        copyApiKeyTimerId = setTimeout(() => {
           copyApiKey.innerHTML = originalHTML;
           copyApiKey.style.backgroundColor = '';
           copyApiKey.style.color = '';
           copyApiKey.style.borderColor = '';
+          copyApiKeyTimerId = null;
         }, 1500);
       });
     }
@@ -373,6 +430,12 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
   // 关闭 toast
   toastClose.addEventListener('click', () => {
     toast.classList.remove('show');
+    
+    // 清除自动关闭的定时器
+    if (toastTimerId) {
+      clearTimeout(toastTimerId);
+      toastTimerId = null;
+    }
   });
   
   // 显示 toast 消息
@@ -396,14 +459,37 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
         </svg>`;
     }
     
-    // 显示 toast
-    toast.classList.add('show');
+    // 清除之前的定时器
+    if (toastTimerId) {
+      clearTimeout(toastTimerId);
+    }
     
     // 3秒后自动关闭
-    setTimeout(() => {
+    toastTimerId = setTimeout(() => {
       toast.classList.remove('show');
+      toastTimerId = null;
     }, 3000);
   }
+
+  // 显示持久的错误信息
+  function showPersistentError(message) {
+    errorDiv.innerHTML = `
+      <div>${message}</div>
+      <div style="margin-top: 8px; font-size: 12px; color: #64748b;">
+        You can try again later or check if the page content is accessible.
+      </div>
+    `;
+    errorDiv.classList.remove('hidden');
+    resultDiv.classList.add('hidden');
+  }
+
+  // 在页面卸载时清除所有定时器
+  window.addEventListener('unload', () => {
+    if (toastTimerId) clearTimeout(toastTimerId);
+    if (settingsSavedTimerId) clearTimeout(settingsSavedTimerId);
+    if (copyApiKeyTimerId) clearTimeout(copyApiKeyTimerId);
+    if (copyCommentTimerId) clearTimeout(copyCommentTimerId);
+  });
 
   // 初始化
   loadApiKey();
