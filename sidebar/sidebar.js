@@ -347,10 +347,21 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     if (API_KEY) {
       navigator.clipboard.writeText(API_KEY).then(() => {
         // 临时改变按钮文本表示成功
-        const originalText = copyApiKey.textContent;
-        copyApiKey.textContent = '✓';
+        const originalHTML = copyApiKey.innerHTML;
+        copyApiKey.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+          </svg>
+          <span class="tooltip">Copied!</span>
+        `;
+        copyApiKey.style.backgroundColor = '#dcfce7';
+        copyApiKey.style.color = '#16a34a';
+        copyApiKey.style.borderColor = '#bbf7d0';
         setTimeout(() => {
-          copyApiKey.textContent = originalText;
+          copyApiKey.innerHTML = originalHTML;
+          copyApiKey.style.backgroundColor = '';
+          copyApiKey.style.color = '';
+          copyApiKey.style.borderColor = '';
         }, 1500);
       });
     }
