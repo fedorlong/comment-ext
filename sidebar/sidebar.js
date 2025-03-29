@@ -7,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const settingsErrorDiv = document.getElementById('settingsError');
   const loadingDiv = document.getElementById('loading');
 
+  // Toast 元素
+  const toast = document.getElementById('toast');
+  const toastContent = document.getElementById('toastContent');
+  const toastIcon = document.getElementById('toastIcon');
+  const toastClose = document.getElementById('toastClose');
+  
   // 标签页元素
   const mainTab = document.getElementById('mainTab');
   const settingsTab = document.getElementById('settingsTab');
@@ -96,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   deleteProductBtn.addEventListener('click', () => {
     if (products.length <= 1) {
-      showError('At least one product configuration is required');
+      showToast('At least one product configuration is required');
       return;
     }
     if (confirm('Are you sure you want to delete this product?')) {
@@ -104,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selectedProductIndex = 0;
       saveProducts();
       updateProductSelect();
+      showToast('Product deleted successfully', 'success');
     }
   });
 
@@ -130,20 +137,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const description = descInput.value.trim();
 
     if (!domain || !keyword || !description) {
-      showError('Please fill in all fields');
+      showToast('Please fill in all fields');
       return;
     }
 
     try {
       if (productForm.dataset.editing === 'true') {
         updateProduct(selectedProductIndex, domain, keyword, description);
+        showToast('Product updated successfully', 'success');
       } else {
         addProduct(domain, keyword, description);
+        showToast('Product added successfully', 'success');
       }
 
       hideProductForm();
     } catch (error) {
-      showError('Failed to save product configuration');
+      showToast('Failed to save product configuration');
       return;
     }
     
@@ -161,20 +170,20 @@ document.addEventListener('DOMContentLoaded', () => {
   generateBtn.addEventListener('click', async () => {
     try {
       if (!API_KEY) {
-        showError('Please set your API Key in the Settings tab');
+        showToast('Please set your API Key in the Settings tab');
         settingsTab.click(); // 自动切换到设置标签页
         return;
       }
       
       // 提前检查产品配置
       if (products.length === 0) {
-        showError('Please add at least one product configuration');
+        showToast('Please add at least one product configuration');
         return;
       }
       
       const currentProduct = products[selectedProductIndex];
       if (!currentProduct) {
-        showError('Invalid product selection');
+        showToast('Invalid product selection');
         return;
       }
       
@@ -251,7 +260,7 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
 
       showResult(comment);
     } catch (error) {
-      showError(error.message);
+      showToast(error.message);
     } finally {
       showLoading(false);
     }
@@ -261,12 +270,6 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     commentText.select();
     document.execCommand('copy');
   });
-
-  function showError(message) {
-    errorDiv.textContent = message;
-    errorDiv.classList.remove('hidden');
-    resultDiv.classList.add('hidden');
-  }
 
   function showResult(comment) {
     commentText.value = comment;
@@ -318,7 +321,7 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     let newApiKey = apiKeyInput.value.trim().replace(/\s+/g, '');
     
     if (!newApiKey) {
-      showSettingsError('Please enter a valid API Key');
+      showToast('Please enter a valid API Key');
       return;
     }
     
@@ -367,10 +370,39 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
     }
   });
 
-  function showSettingsError(message) {
-    settingsErrorDiv.textContent = message;
-    settingsErrorDiv.classList.remove('hidden');
-    settingsSaved.classList.add('hidden');
+  // 关闭 toast
+  toastClose.addEventListener('click', () => {
+    toast.classList.remove('show');
+  });
+  
+  // 显示 toast 消息
+  function showToast(message, type = 'error') {
+    toastContent.textContent = message;
+    
+    // 设置图标
+    if (type === 'error') {
+      toast.className = 'toast error show';
+      toastIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#ef4444" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+        </svg>`;
+    } else if (type === 'success') {
+      toast.className = 'toast success show';
+      toastIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#10b981" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+        </svg>`;
+    }
+    
+    // 显示 toast
+    toast.classList.add('show');
+    
+    // 3秒后自动关闭
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
   }
 
   // 初始化
