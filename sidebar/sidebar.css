@@ -14,7 +14,7 @@ body {
   flex-direction: column;
   gap: 16px; */
   height: 100%;
-  padding: 16px;
+  padding: 12px;
   box-sizing: border-box;
   background-color: #f8fafc;
 }
@@ -188,12 +188,19 @@ textarea {
   padding: 10px;
 }
 
-.rel-label {
+.rel-label, .target-label {
   display: block;
   margin-bottom: 6px;
   font-size: 14px;
   font-weight: 500;
   color: #0f172a;
+}
+
+.target-options {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
 }
 
 .checkbox-group {
@@ -478,8 +485,8 @@ textarea {
   border: 1px solid #e2e8f0;
   border-radius: 4px;
   transition: border-color 0.2s, box-shadow 0.2s;
-  height: 20px;
-  line-height: 20px;
+  /* height: 20px; */
+  line-height: 18px;
 }
 
 .api-key-input input:focus {

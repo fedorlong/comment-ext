@@ -175,7 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // 获取选中的 rel 属性
   function getSelectedRels() {
     const checkboxes = document.querySelectorAll('input[name="rel"]:checked');
-    return Array.from(checkboxes).map(cb => cb.value).join(' ');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
+  // 获取选中的 target 属性
+  function getSelectedTarget() {
+    const checkbox = document.querySelector('input[name="target"]:checked');
+    return checkbox ? checkbox.value : null;
   }
 
   generateBtn.addEventListener('click', async () => {
@@ -219,6 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const selectedRels = getSelectedRels();
+      const selectedTarget = getSelectedTarget();
       
       // 调用 OpenRouter API 使用 DeepSeek 模型
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -267,8 +274,12 @@ Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's
       const data = await response.json();
       let comment = data.choices[0].message.content;
       
-      // 替换 {{keyword}} 为实际的链接
-      const linkHtml = `<a href="${currentProduct.domain}" rel="${selectedRels}">${currentProduct.keyword}</a>`;
+      // 构建链接 HTML
+      const relAttributes = selectedRels.length > 0 ? ` rel="${selectedRels.join(' ')}"` : '';
+      const targetAttribute = selectedTarget ? ` target="${selectedTarget}"` : '';
+      
+      // 替换评论中的关键词为链接
+      const linkHtml = `<a href="${currentProduct.domain}"${relAttributes}${targetAttribute}>${currentProduct.keyword}</a>`;
       comment = comment.replace(/\{\{([^}]+)\}\}/g, linkHtml);
 
       showResult(comment);
