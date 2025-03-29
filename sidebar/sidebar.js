@@ -211,12 +211,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // 获取当前标签页
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
       
+      // 加载并执行依赖的js文件
+      const [{result}] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['lib/readability.js', 'lib/extractor.js']
+      });
+
       // 提取文章内容
       const article = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        function: extractArticleContent
+        func: () => window.extractArticleContent()
       });
-      
+
       // 获取提取的内容
       const { title, excerpt } = article[0].result;
       
