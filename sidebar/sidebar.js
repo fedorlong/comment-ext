@@ -226,6 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const selectedRels = getSelectedRels();
       const selectedTarget = getSelectedTarget();
+
+      // model: "deepseek/deepseek-r1:free",
       
       // 调用 OpenRouter API 使用 DeepSeek 模型
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -237,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
           'X-Title': 'Blog Comment Assistant' // 你的应用名称
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-r1:free",
+          model: "deepseek/deepseek-chat-v3-0324:free",
           messages: [{
             role: "system",
             content: "You are a friendly blog commenter. Write brief, natural comments in simple English (6th-grade level). Don't use quotation marks around the comment. Don't include word counts. Use the keyword description to understand the context but keep mentions brief and natural."

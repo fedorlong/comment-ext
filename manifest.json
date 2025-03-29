@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Blog Comment Assistant",
+  "name": "BacklinkRush",
   "version": "1.0.0",
   "description": "智能博客评论生成助手",
   "permissions": [
