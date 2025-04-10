@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // 获取提取的内容
-      const { title, excerpt } = article[0].result;
+      const { title, excerpt } = article[0]?.result;
       
       if (!title || !excerpt) {
         throw new Error('Could not extract content from the page. Please make sure you are on a page with readable content.');
@@ -254,40 +254,44 @@ document.addEventListener('DOMContentLoaded', () => {
             content: `Write a short, natural comment (30-50 words):
 Title: ${title}
 Content: ${excerpt}
-Keyword: ${currentProduct.keyword}
-Keyword Description: ${currentProduct.description}
+Keyword: ${currentProduct?.keyword}
+Keyword Description: ${currentProduct?.description}
 
 Guidelines:
 1. Write directly without quotation marks
 2. Don't include word counts or meta information
 3. Keep the tone casual and friendly
-4. The keyword MUST be wrapped in {{}} exactly like this: {{${currentProduct.keyword}}}
+4. The keyword MUST be wrapped in {{}} exactly like this: {{${currentProduct?.keyword}}}
 5. Make everything flow smoothly
 
 Example format:
-Great article about [topic]. I've found {{${currentProduct.keyword}}} really useful for this kind of thing.
+Great article about [topic]. I've found {{${currentProduct?.keyword}}} really useful for this kind of thing.
 
 or
 
-Interesting points here. This reminds me of {{${currentProduct.keyword}}} - it's quite helpful in similar situations.`
+Interesting points here. This reminds me of {{${currentProduct?.keyword}}} - it's quite helpful in similar situations.`
           }]
         })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`API call failed: ${errorData.message || response.statusText}`);
+        let errorMsg = `API call failed: ${errorData?.error?.message}`;
+        if (errorData?.error?.code === 401) {
+          errorMsg = `API call failed: ${errorData?.error?.message}. Please get a new API key from OpenRouter, save it in the settings, and then try again.`
+        }
+        throw new Error(errorMsg);
       }
       
       const data = await response.json();
-      let comment = data.choices[0].message.content;
+      let comment = data?.choices[0]?.message?.content;
       
       // 构建链接 HTML
       const relAttributes = selectedRels.length > 0 ? ` rel="${selectedRels.join(' ')}"` : '';
       const targetAttribute = selectedTarget ? ` target="${selectedTarget}"` : '';
       
       // 替换评论中的关键词为链接
-      const linkHtml = `<a href="${currentProduct.domain}"${relAttributes}${targetAttribute}>${currentProduct.keyword}</a>`;
+      const linkHtml = `<a href="${currentProduct?.domain}"${relAttributes}${targetAttribute}>${currentProduct?.keyword}</a>`;
       comment = comment.replace(/\{\{([^}]+)\}\}/g, linkHtml);
 
       showResult(comment);
